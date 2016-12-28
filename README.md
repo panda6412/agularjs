@@ -1,3 +1,4 @@
-# My Awesome Book
+# Service 伺服器通訊服務
 
-This file file serves as your book's preface, a great place to describe your book's content and ideas.
+本章將簡單介紹angularjs在對於伺服器後端是如何運作的，以及他所提供較便利的方法，以及一些擴展性的應用。
+
