@@ -69,5 +69,120 @@ $http 是angularjs 一個很重要的核心service 它可以幫助我們去請�
 </html>
 ```
 
+> 這段程式碼值得需要注意的地方$http.get的方法第一個argument為url，然後除了get之外，$http還提供post、head、put、delete、jsonp，再來就是這些function 皆會回傳promise物件，因此是可以鏈結使用的，然而promise 所使用的方法就類似回呼，若有一百個請求，用戶端並不會因為等待回應而拖延運作。
+>
+> .then\(\)函式有兩的引數，第一個是成功處理器\(success handler\)，第二個則是錯誤處理器\(error handler\)，這兩個處理器皆會取的傳遞的回應物件，而這些物件有一些屬性可以讓我們了解回應的狀況
+>
+> * headers   呼叫的標頭
+>
+> * status   回應的狀態碼
+>
+> * config    含有呼叫所產生的組態
+>
+> * data   來自伺服器回應的主體
+
+
+
+```
+<!DOCTYPE html>
+<html ng-app='noteapp'>
+<head>
+	<title></title>
+	<script src='https://ajax.googleapis.com/ajax/libs/angularjs/1.3.11/angular.js'></script>
+	<script type="text/javascript">
+		angular.module('noteapp',[]).controller('MainCtrl',['$http',function($http){
+			var self = this ;
+			self.items = [];
+			self.newItem = {};
+			var fetchItem = function(){
+				return $http.get('http://122.117.134.145/CodeIgniter_Practice/index.php/TravelAPI/ListAccount')
+				.then(function(response){
+						self.items = response.data;
+						console.log('fetch data success !');
+					},function(errResponse){
+						console.log('fetch data error !');
+					});
+			};
+			fetchItem();
+			self.addItem = function(){
+				$http.post('http://122.117.134.145/CodeIgniter_Practice/index.php/TravelAPI/addItem',self.newItem)
+					.then(fetchItem)
+					.then(function(response){
+						self.newItem={};
+					});
+					console.log('click already');
+			};
+		}])
+		.factory('MyLoggingInterceptor', ['$q', function($q) {
+		    return {
+		      request: function(config) {
+		        console.log('Request made with ', config);
+		        return config;
+		        // If an error, or not allowed, or my custom condition
+		        // return $q.reject('Not allowed');
+		      },
+		      requestError: function(rejection) {
+		        console.log('Request error due to ', rejection);
+		        // Continue to ensure that the next promise chain
+		        // sees an error
+		        return $q.reject(rejection);
+		        // Or handled successfully?
+		        // return someValue;
+		      },
+		      response: function(response) {
+		        console.log('Response from server', response);
+		        // Return a promise
+		        return response || $q.when(response);
+		      },
+		      responseError: function(rejection) {
+		        console.log('Error in response ', rejection);
+		        // Continue to ensure that the next promise chain
+		        // sees an error
+		        // Can check auth status code here if need to
+		        // if (rejection.status === 403) {
+		        //   Show a login dialog
+		        //   return a value to tell controllers it has
+		        // been handled
+		        // }
+		        // Or return a rejection to continue the
+		        // promise failure chain
+		        return $q.reject(rejection);
+		      }
+		    };
+		  }])
+	  .config(['$httpProvider', function($httpProvider) {
+	    $httpProvider.interceptors.push('MyLoggingInterceptor');
+	  }]);
+	</script>
+</head>
+
+<body ng-controller='MainCtrl as ctrl'>
+	<div>
+		<table>
+			<tr>
+				<td>id</td>
+				<td>item</td>
+				<td>amount</td>
+			</tr>
+			<tr ng-repeat='item in ctrl.items'>
+				<td>{{item.id}}</td>
+				<td>{{item.item}}</td>
+				<td>{{item.amount}}</td>
+			</tr>
+
+		</table>
+	</div>
+
+	<div>
+		<form name='addForm' ng-submit='ctrl.addItem()'>
+			<input type="text" name="item" placeholder="item" ng-model='ctrl.newItem.item' required>
+			<input type="text" name="amount" placeholder="amount" ng-model='ctrl.newItem.amount' required>
+			<input type="submit" value="add" ng-disabled='addForm.$invalid'>
+		</form>
+	</div>
+</body>
+</html>
+```
+
 
 
